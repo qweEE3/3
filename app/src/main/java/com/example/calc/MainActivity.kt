@@ -1,18 +1,14 @@
 package com.example.calc
-
-import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 
 import android.os.Bundle
-import android.util.Log
 import com.example.calc.databinding.ActivityMainBinding
-import net.objecthunter.exp4j.ExpressionBuilder
+
 
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private var numberForPlusMinus = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
