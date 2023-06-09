@@ -1,372 +1,215 @@
 package com.example.calc
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.currentComposer
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.calc.ui.theme.CalcTheme
+import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity<T> : ComponentActivity() {
+import android.os.Bundle
+import android.util.Log
+import com.example.calc.databinding.ActivityMainBinding
+import net.objecthunter.exp4j.ExpressionBuilder
+
+
+
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+    private var numberForPlusMinus = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            var input = remember {
-                mutableStateOf("")
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        fun cutPart(value: String): String {
+            var isHavePointZeroPart = """-?\d+\.0""".toRegex().matches(value)
+            if (isHavePointZeroPart) {
+                return value.substringBefore('.')
+            } else {
+                return value
             }
-            var accumulate = remember {
-                mutableStateOf("")
-            }
-            var currentOperator = remember {
-                mutableStateOf("")
-            }
-            fun cutPart(value: String):String{
-                var isHavePointZeroPart = """-?\d+\.0""".toRegex().matches(value)
-                if(isHavePointZeroPart){
-                    return value.substringBefore('.')
-                } else {
-                    return  value
-                }
-            }
-            fun calculate(operator: String){
-                fun applayOperator(): String{
-                    var result = 0.0
-                    when(currentOperator.value){
-                        "X" -> result = accumulate.value.toDouble() * input.value.toDouble()
-                        "-" -> result = accumulate.value.toDouble() - input.value.toDouble()
-                        "+" -> result = accumulate.value.toDouble() + input.value.toDouble()
-                        "/" -> result = accumulate.value.toDouble() / input.value.toDouble()
-                        "-" -> result = accumulate.value.toDouble() - input.value.toDouble()
+        }
+
+        fun calculate(operator: String) {
+            fun applayOperator(): String {
+                var result = 0.0
+                when (binding.currentOperator.text) {
+                    "X" -> result = binding.accumulate.text.toString()
+                        .toDouble() * binding.input.text.toString().toDouble()
+
+                    "-" -> result = binding.accumulate.text.toString()
+                        .toDouble() - binding.input.text.toString().toDouble()
+
+                    "+" -> result = binding.accumulate.text.toString()
+                        .toDouble() + binding.input.text.toString().toDouble()
+
+                    "/" -> result = binding.accumulate.text.toString()
+                        .toDouble() / binding.input.text.toString().toDouble()
+
+                    "-" -> result = binding.accumulate.text.toString()
+                        .toDouble() - binding.input.text.toString().toDouble()
 
 
-                    }
-                    var resultStr = cutPart(result.toString())
-                    if(resultStr.length > 7){
-                        resultStr = String.format("%.5f",resultStr.toDouble())
-                    }
-                    return resultStr
                 }
+                var resultStr = cutPart(result.toString())
+                if (resultStr.length > 7) {
+                    resultStr = String.format("%.5f", resultStr.toDouble())
+                }
+                return resultStr
+            }
 
-                if(input.value == "ошибка"){
-                    return
-                }
-                if(operator == "="){
-                    if(currentOperator.value != ""){
-                        if(input.value != "" && accumulate.value != ""){
-                            var result = applayOperator().toString()
-                            if(result == "Infinity" || result == "NaN"){
-                                input.value = "ошибка"
-                            } else {
-                                input.value = result
-                            }
-                                accumulate.value = "";
-                                currentOperator.value = ""
-                        }
-                    }
-                } else
-                if(accumulate.value == ""){
-                    accumulate.value = input.value
-                    input.value = ""
-                    currentOperator.value = operator
-                }
-                else {
-                    if(input.value == ""){
-                        currentOperator.value = operator
-                    } else
-                    if(input.value != ""){
-                        if(currentOperator.value != "" && currentOperator.value != operator){
-                            var result = applayOperator()
-                            if(result == "Infinity" || result == "NaN"){
-                                accumulate.value = ""
-                                input.value = "ошибка"
-                                currentOperator.value = ""
-                            } else {
-                                accumulate.value = result
-                                input.value = ""
-                                currentOperator.value = operator
-                            }
-
+            if (binding.input.text == "ошибка") {
+                return
+            }
+            if (operator == "=") {
+                if (binding.currentOperator.text != "") {
+                    if (binding.input.text != "" && binding.accumulate.text != "") {
+                        var result = applayOperator().toString()
+                        if (result == "Infinity" || result == "NaN") {
+                            binding.input.text = "ошибка"
                         } else {
-                            var result = ""
-                            currentOperator.value = operator
-                            result = applayOperator()
-                            if(result == "Infinity" || result == "NaN"){
-                                accumulate.value = ""
-                                input.value = "ошибка"
-                                currentOperator.value = ""
+                            binding.input.text = result
+                        }
+                        binding.accumulate.text = "";
+                        binding.currentOperator.text = ""
+                    }
+                }
+            } else
+                if (binding.accumulate.text == "") {
+                    binding.accumulate.text = binding.input.text
+                    binding.input.text = ""
+                    binding.currentOperator.text = operator
+                } else {
+                    if (binding.input.text == "") {
+                        binding.currentOperator.text = operator
+                    } else
+                        if (binding.input.text != "") {
+                            if (binding.currentOperator.text != "" && binding.currentOperator.text != operator) {
+                                var result = applayOperator()
+                                if (result == "Infinity" || result == "NaN") {
+                                    binding.accumulate.text = ""
+                                    binding.input.text = "ошибка"
+                                    binding.currentOperator.text = ""
+                                } else {
+                                    binding.accumulate.text = result
+                                    binding.input.text = ""
+                                    binding.currentOperator.text = operator
+                                }
+
                             } else {
-                                accumulate.value = result
-                                input.value = ""
+                                var result = ""
+                                binding.currentOperator.text = operator
+                                result = applayOperator()
+                                if (result == "Infinity" || result == "NaN") {
+                                    binding.accumulate.text = ""
+                                    binding.input.text = "ошибка"
+                                    binding.currentOperator.text = ""
+                                } else {
+                                    binding.accumulate.text = result
+                                    binding.input.text = ""
+                                }
                             }
                         }
-                    }
                 }
+        }
 
-
-//                if(currentOperator.value == ""){
-//                    accumulate.value = input.value
-//                    input.value = ""
-//                    currentOperator.value = operator
-//                } else {
-//                    if(input.value != ""){
-//                        input.value = applayOperator()
-//                    }
-//                }
-
+        binding.button0.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
             }
+            binding.input.text = binding.input.text.toString() + "0"
+        }
+        binding.button1.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "1"
+        }
+        binding.button2.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "2"
+        }
+        binding.button3.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "3"
+        }
+        binding.button4.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "4"
+        }
+        binding.button5.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "5"
+        }
+        binding.button6.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "6"
+        }
+        binding.button7.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "7"
+        }
+        binding.button8.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "8"
+        }
+        binding.button9.setOnClickListener {
+            if (binding.input.text == "ошибка" || binding.input.text == "0") {
+                binding.input.text = ""
+            }
+            binding.input.text = binding.input.text.toString() + "9"
+        }
 
 
-            Column(
-                modifier = Modifier
-                    .background(Color.White)
-                    .fillMaxSize(),
-                Arrangement.Center,
-                Alignment.CenterHorizontally
-
+        binding.ac.setOnClickListener {
+            binding.accumulate.text = ""
+            binding.input.text = ""
+            binding.currentOperator.text = ""
+        }
+        binding.plus.setOnClickListener {
+            calculate("+")
+        }
+        binding.minus.setOnClickListener {
+            calculate("-")
+        }
+        binding.multiply.setOnClickListener {
+            calculate("X")
+        }
+        binding.devide.setOnClickListener {
+            calculate("/")
+        }
+        binding.point.setOnClickListener {
+            if ("""\d+\.""".toRegex()
+                    .find(binding.input.text) == null && binding.input.text != "" && binding.input.text != "ошибка"
             ) {
-
-
-                Row {
-                    Text(
-                        text = accumulate.value,
-                        fontSize = 23.sp
-                    )
-
-                }
-                Row {
-//                    Text(
-//                        text = "operator: " + currentOperator.value,
-//                        fontSize = 23.sp
-//                    )
-                }
-                Row {
-                    Text(
-                        text = input.value,
-                        fontSize = 23.sp
-                    )
-                }
-                Row {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                            input.value += "7"
-                        }) {
-                        Text("7", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "8"
-
-                    }) {
-                        Text("8", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "9"
-
-                    }) {
-                        Text("9", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        calculate("X")
-                    }) {
-                        Text("X", fontSize =23.sp)
-                    }
-                }
-                Row {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "4"
-
-                    }) {
-                        Text("4", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "5"
-
-                    }) {
-                        Text("5", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "6"
-
-                    }) {
-                        Text("6", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        calculate("-")
-                    }) {
-                        Text("-", fontSize =23.sp)
-                    }
-                }
-                Row {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "1"
-
-                    }) {
-                        Text("1", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "2"
-
-                    }) {
-                        Text("2", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                            if(input.value == "ошибка"){
-                                input.value = ""
-                            }
-                        input.value += "3"
-
-                    }) {
-                        Text("3", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        calculate("+")
-                    }) {
-                        Text("+", fontSize =23.sp)
-                    }
-                }
-                Row {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        if("""\d+\.""".toRegex().find(input.value) == null && input.value != "" && input.value != "ошибка"){
-                            input.value += "."
-                        }
-                    }) {
-                        Text(".", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        if(input.value != "0"){
-                            if(input.value == "ошибка" || input.value == "0"){
-                                input.value = ""
-                            }
-                            input.value += "0"
-                        }
-                    }) {
-                        Text("0", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        calculate("/")
-                    }) {
-                        Text("/", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        calculate("=")
-                    }) {
-                        Text("=", fontSize =23.sp)
-                    }
-                }
-                Row {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        accumulate.value = ""
-                        input.value = ""
-                        currentOperator.value = ""
-
-                    }) {
-                        Text("AC", fontSize =23.sp)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(Color.White,Color.Black,Color.White,Color.White),
-                        border = BorderStroke(1.dp,color = Color.Black),
-                        onClick = {
-                        if(input.value != "" && input.value != "ошибка"){
-                            input.value = cutPart((input.value.toDouble() * -1).toString())
-                        }
-                    }) {
-                        Text("+/-", fontSize =23.sp)
-                    }
-                }
+                binding.input.text = binding.input.text.toString() + "."
+            }
+        }
+        binding.plusMinus.setOnClickListener {
+            if (binding.input.text != "" && binding.input.text != "ошибка") {
+                binding.input.text =
+                    cutPart((binding.input.text.toString().toDouble() * -1).toString())
+            }
+        }
+        binding.result.setOnClickListener {
+            calculate("=")
+        }
+        binding.percent.setOnClickListener {
+            if (binding.input.text != "" && binding.input.text != "ошибка" && binding.input.text != "0") {
+                var value = cutPart((binding.input.text.toString().toDouble() / 100).toString())
+                binding.input.text = value
             }
         }
     }
